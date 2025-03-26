@@ -19,7 +19,11 @@ passport.use(
         console.log("Local Strategy Hit for email:", email);
 
         // Check if user exists in the database
-        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        const result = await pool.query(
+          "SELECT user_id, name, email,password FROM users WHERE email = $1",
+          [email]
+        );
+        
 
         if (result.rows.length === 0) {
           console.log("User not found.");
