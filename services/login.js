@@ -3,12 +3,40 @@ import pkg from "passport-local";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import pool from "../db/index.js";
-
+import config from "../config/index.js";
 const LocalStrategy = pkg.Strategy;
-
 // JWT Secret Key
 const JWT_SECRET = "your_secret_key"; // Use env variable in production
+
+
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: config.GOOGLE_CLIENT_ID,
+      clientSecret: config.GOOGLE_CLIENT_SECRET,
+      callbackURL: config.callbackURL,
+    },
+    async function (accessToken, refreshToken, profile, done) {
+      try {
+        // ✅ Create or find user in DB
+        const user = {
+          id: profile.id,
+          username: profile.displayName, // Use profile.displayName, not profile.username
+          email: profile.emails[0].value, // Get email if available
+          picture: profile.photos[0].value, // Profile picture
+        };
+
+        // Call done() with user object
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
+    }
+  )
+);
 
 // Local Strategy for authenticating users with email and password
 passport.use(
@@ -76,13 +104,13 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  done(null, user.email);
+  done(null, user.email,user);
 });
 
 passport.deserializeUser(async (email, done) => {
   try {
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    done(null, result.rows[0]);
+    done(null, result.rows[0],user);
   } catch (err) {
     done(err);
   }

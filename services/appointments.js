@@ -79,5 +79,89 @@ export const getAllAppointments = async () => {
     }
   };
   
+export const doctorsWithAppointments = async ()=>{
+  try {
+    //  Fetch all appointments
+    const response = await pool.query(
+      "SELECT doctors.*, appointments.* FROM doctors INNER JOIN appointments ON doctors.id = appointments.docId WHERE appointments.status = 'Pending'"
+    );
+    
+    //  Check if appointments exist
+    if (response.rows.length > 0) {
+      return {
+        success: true,
+        data: response.rows,
+      };
+    } else {
+      return {
+        success: false,
+        message: "No Doctors with appointments found",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    return {
+      success: false,
+      message: "Error fetching appointments",
+      error: error.message,
+    };
+  }
+}
 
+export const getAppointmentsByDoctor = async (doctorId) => {
+  try {
+    //  Fetch all appointments
+    const response = await pool.query(
+      "SELECT * FROM appointments WHERE docId = $1 ORDER BY selectedDate ASC",
+      [doctorId]);
+    
+    //  Check if appointments exist
+    if (response.rows.length > 0) {
+      return {
+        success: true,
+        data: response.rows,
+      };
+    } else {
+      return {
+        success: false,
+        message: "No Doctors with appointments found",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    return {
+      success: false,
+      message: "Error fetching appointments",
+      error: error.message,
+    };
+  }
+};
 
+export const updateStatus = async(appointmentId,status)=>{
+  try {
+    //  Fetch all appointments
+    const response = await pool.query(
+      "UPDATE appointments SET status = $1 WHERE id = $2 RETURNING *",
+      [status, appointmentId]);
+    
+    //  Check if appointments exist
+    if (response.rows.length > 0) {
+      return {
+        success: true,
+        data: response.rows,
+      };
+    } else {
+      return {
+        success: false,
+        message: "Appointment Status updated Successfully",
+      };
+    }
+  } catch (error) {
+    console.error("Error updating:", error);
+    return {
+      success: false,
+      message: "Error fetching appointments",
+      error: error.message,
+    };
+  }
+}

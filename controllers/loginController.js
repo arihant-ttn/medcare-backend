@@ -44,4 +44,32 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
+
+// ✅ Google Auth Route
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })
+);
+
+// ✅ Google Auth Callback
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "http://localhost:3001/login",
+  }),
+  (req, res) => {
+    res.redirect("http://localhost:3001/appointment");
+  }
+);
+
+// ✅ Logout Route
+router.get("/logout", (req, res) => {
+  req.logout(() => {
+    
+    res.redirect("/");
+  });
+});
+
 export default router;
