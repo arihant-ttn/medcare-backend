@@ -17,27 +17,40 @@ passport.use(
     {
       clientID: config.GOOGLE_CLIENT_ID,
       clientSecret: config.GOOGLE_CLIENT_SECRET,
-      callbackURL: config.callbackURL,
+      callbackURL: "http://localhost:3000/google/callback"
     },
-    async function (accessToken, refreshToken, profile, done) {
+    async (accessToken, refreshToken, profile, done) => {
       try {
-        // ✅ Create or find user in DB
-        const user = {
-          id: profile.id,
-          username: profile.displayName, // Use profile.displayName, not profile.username
-          email: profile.emails[0].value, // Get email if available
-          picture: profile.photos[0].value, // Profile picture
-        };
+        const { id, displayName, emails, photos } = profile;
 
-        // Call done() with user object
+        // Check if user already exists
+        const existingUser = await pool.query(
+          "SELECT * FROM users WHERE google_id = $1",
+          [id]
+        );
+
+        let user;
+        if (existingUser.rows.length === 0) {
+          // Create new user
+          const newUser = await pool.query(
+            `INSERT INTO users (google_id, name, email) 
+             VALUES ($1, $2, $3) RETURNING *`,
+            [id, displayName, emails[0].value]
+          );
+          user = newUser.rows[0];
+        } else {
+          user = existingUser.rows[0];
+        }
+        
+
         return done(null, user);
       } catch (error) {
+        console.error("Error in Google Auth:", error);
         return done(error, null);
       }
     }
   )
 );
-
 // Local Strategy for authenticating users with email and password
 passport.use(
   new LocalStrategy(
@@ -104,13 +117,13 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  done(null, user.email,user);
+  done(null,user);
 });
 
-passport.deserializeUser(async (email, done) => {
+passport.deserializeUser(async (email,user, done) => {
   try {
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    done(null, result.rows[0],user);
+    done(null,user);
   } catch (err) {
     done(err);
   }

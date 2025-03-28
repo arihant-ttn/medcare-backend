@@ -9,8 +9,15 @@ const fetchDoctors = async (filters, page=1) => {
 
     //  Search by name or specialization
     if (search) {
-      query += ` AND (LOWER(name) LIKE LOWER('%${search}%') OR LOWER(specialization) LIKE LOWER('%${search}%'))`;
-    }
+      query += ` AND (
+        LOWER(name) LIKE LOWER('%${search}%') OR
+        LOWER(specialization) LIKE LOWER('%${search}%') OR
+        EXISTS (
+          SELECT 1
+          FROM unnest(disease) AS d
+          WHERE LOWER(d) LIKE LOWER('%${search}%')
+        )
+      )`;    }
 
     // Filter by Rating
     if (rating && rating !== "showAll") {

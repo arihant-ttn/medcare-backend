@@ -1,5 +1,5 @@
 
-import {getAllAppointments,createAppointment,doctorsWithAppointments,getAppointmentsByDoctor,updateStatus }from '../services/appointments.js'
+import {getAllAppointments,createAppointment,doctorsWithAppointments,getAppointmentsByDoctor,updateStatus,getBookedSlots }from '../services/appointments.js'
 import express from 'express';
 
 const router = express.Router();
@@ -15,7 +15,7 @@ router.get('/doctor/:doctorId', async (req,res)=>{
   
 })
 
-router.get("/", async (req, res) => {
+router.get("/doctorsWithAppointments", async (req, res) => {
   console.log("controller hit");
   const result = await doctorsWithAppointments();
   if (result) {
@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
   });
   
 
-router.post("/", async (req, res) => {
+router.post("/appointments", async (req, res) => {
     try {
       const response = await createAppointment(req.body);
   
@@ -61,6 +61,6 @@ router.put ('/updateStatus/:appointmentId', async(req,res)=>{
       res.status(404).json(result);
     }
 })
-
+router.get('/get-bookedSlots',getBookedSlots);
 
   export default router;

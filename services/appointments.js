@@ -83,7 +83,13 @@ export const doctorsWithAppointments = async ()=>{
   try {
     //  Fetch all appointments
     const response = await pool.query(
-      "SELECT doctors.*, appointments.* FROM doctors INNER JOIN appointments ON doctors.id = appointments.docId WHERE appointments.status = 'Pending'"
+      `SELECT DISTINCT ON (doctors.id) 
+  doctors.*, 
+  appointments.*
+FROM doctors
+INNER JOIN appointments ON doctors.id = appointments.docId
+WHERE appointments.status = 'Pending'
+ORDER BY doctors.id, appointments.selectedDate DESC;`
     );
     
     //  Check if appointments exist
@@ -165,3 +171,25 @@ export const updateStatus = async(appointmentId,status)=>{
     };
   }
 }
+
+
+// Get Booked Slots for a Doctor on a Specific Date
+export const getBookedSlots = async (req, res) => {
+  const { doctorId, selectedDate } = req.query;
+
+  try {
+    const query = `
+     SELECT slot, selectedShift
+FROM appointments
+WHERE docId = $1 AND selecteddate = $2 AND status = 'Approved';
+    `;
+
+
+    const result = await pool.query(query, [doctorId, selectedDate]);
+    console.log(result.rows);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("❌ Error fetching booked slots:", error);
+    res.status(500).json({ success: false, message: "Error fetching booked slots" });
+  }
+};
