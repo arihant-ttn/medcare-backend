@@ -12,13 +12,9 @@ const fetchDoctors = async (filters, page=1) => {
       query += ` AND (
         LOWER(name) LIKE LOWER('%${search}%') OR
         LOWER(specialization) LIKE LOWER('%${search}%') OR
-        EXISTS (
-          SELECT 1
-          FROM unnest(disease) AS d
-          WHERE LOWER(d) LIKE LOWER('%${search}%')
-        )
-      )`;    }
-
+        LOWER(disease) LIKE LOWER('%${search}%')
+      )`;
+    }
     // Filter by Rating
     if (rating && rating !== "showAll") {
       query += ` AND rating = ${parseInt(rating)}`;
@@ -52,7 +48,13 @@ const fetchDoctors = async (filters, page=1) => {
     if (gender && gender !== "showAll") {
       query += ` AND gender = '${gender}'`;
     }
+    if (!search && !rating && !experience && gender === "showAll") {
+      query += ` ORDER BY rating DESC`; //  Default sort by highest ratings
+    } else {
+      query += ` ORDER BY rating DESC`; //  Always sort filtered results by rating
+    }
     const cQuery = query;
+    console.log(query);
     //  Pagination Logic
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query += ` LIMIT ${limit} OFFSET ${offset}`;
@@ -79,7 +81,7 @@ const fetchDoctors = async (filters, page=1) => {
 
   } catch (err) {
     console.error("❌ Error fetching doctors:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+   
   }
 };
 

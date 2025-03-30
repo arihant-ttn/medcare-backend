@@ -2,17 +2,24 @@ import nodemailer from "nodemailer";
 
 //  Nodemailer Configuration
 const transporter = nodemailer.createTransport({
-  service: "Gmail", // or use your SMTP provider
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: "your-email@gmail.com",
-    pass: "your-email-password",
+    user: "medcare.bootcamp@gmail.com",
+    pass: "Jaimatadi@12",
   },
+  tls: {
+    rejectUnauthorized: false, 
+  },
+  connectionTimeout: 10000, 
 });
+
 
 //  Send Password Reset Email
 export const sendResetEmail = async (email, resetLink) => {
   const mailOptions = {
-    from: "your-email@gmail.com",
+    from: "medcare.bootcamp@gmail.com",
     to: email,
     subject: "Password Reset Link",
     html: `
@@ -26,3 +33,4 @@ export const sendResetEmail = async (email, resetLink) => {
   //  Send Email
   await transporter.sendMail(mailOptions);
 };
+

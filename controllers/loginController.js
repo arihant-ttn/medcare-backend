@@ -2,6 +2,7 @@ import express from "express";
 import passport from "../services/login.js";
 import jwt from "jsonwebtoken";
 import { generateToken } from "../services/jwtService.js";
+import { handleGoogleCallback,authenticateGoogle } from "../services/login.js";
 const router = express.Router();
 
 // JWT Secret Key (use env variable in production)
@@ -45,40 +46,11 @@ router.post("/login", (req, res, next) => {
 });
 
 
-// ✅ Google Auth Route
-  router.get(
-    "/google",
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
+//  Google Auth Route
+  export const googleAuth = authenticateGoogle;
+  export const googleAuthCallback = handleGoogleCallback
 
-
-    })
-  );
-
-  // ✅ Google Auth Callback
-  router.get(
-    "/google/callback",
-    passport.authenticate("google", {
-      failureRedirect: "http://localhost:3001/login",
-    }),
-    (req, res) => {
-      // ✅ Check if user is authenticated
-      if (!req.user) {
-        return res.redirect("http://localhost:3001/login");
-      }
-  
-      // ✅ Generate JWT Token after login
-      const token = generateToken({
-        id: req.user.id,
-        email: req.user.email,
-      });
-      
-      // ✅ Redirect with Token in URL to Frontend
-      res.redirect(`http://localhost:3001/appointment?token=${token}`);
-    }
-  );
-
-  // ✅ Logout Route
+  //  Logout Route
   router.get("/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
@@ -86,7 +58,7 @@ router.post("/login", (req, res, next) => {
         return res.status(500).json({ success: false, message: "Logout failed" });
       }
   
-      // ✅ Destroy session and redirect to login
+      //  Destroy session and redirect to login
       req.session.destroy(() => {
         res.redirect("http://localhost:3001/login");
       });

@@ -3,7 +3,7 @@ import  fetchDoctors  from "../services/doctorsList.js";
 
 const router = express.Router();
 
-// ✅ Fetch Doctors with Filters & Pagination
+//  Fetch Doctors with Filters & Pagination
 router.get("/", async (req, res) => {
   console.log("hit");
 
@@ -12,14 +12,6 @@ router.get("/", async (req, res) => {
   
   const page = parseInt(req.query.page) || 1;
 
-
-  // Prepare filters from query params
-  // const filters = {
-  //   search: search || "",
-  //   rating: rating ? parseFloat(rating) : null,
-  //   gender: gender || "",
-  //   experience: experience ? parseInt(experience) : null,
-  // };
 
   // Fetch doctors with filters
   const response = await fetchDoctors(filters, page);

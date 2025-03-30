@@ -1,7 +1,7 @@
 import pool from "../db/index.js";
 import { uploadToCloudinary, deleteFromCloudinary } from "./upload.js";
 
-// 📌 Add New Doctor
+//  Add New Doctor
 export const addDoctor = async (req, res) => {
   try {
     const { name, specialization, experience, gender, qualification, diseases ,description,reviews} = req.body;
@@ -44,7 +44,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
   }
 };
 
-//  Get All Doctors
+
 //  Delete Doctor
 export const deleteDoctor = async (req, res) => {
   try {
@@ -72,6 +72,25 @@ export const deleteDoctor = async (req, res) => {
     res.status(500).json({ error: "Failed to delete doctor" });
   }
 };
+export const getAllDoctor = async (req, res) => {
+  try {
+    // ✅ Fetch all doctors from the database
+    const doctor = await pool.query("SELECT * FROM doctors;");
+    
+    // ✅ Return empty array if no doctor found
+    if (doctor.rows.length === 0) {
+      return res.status(200).json({ data: [] }); // Return empty array
+    }
+
+    // ✅ Send fetched doctor data
+    res.status(200).json({ success: true, data: doctor.rows });
+  } catch (error) {
+    console.error("Error fetching doctors:", error);
+    res.status(500).json({ error: "Failed to fetch doctors" });
+  }
+};
+
+
 
 export const updateDoctor = async (req, res) => {
     try {
@@ -85,7 +104,7 @@ export const updateDoctor = async (req, res) => {
         description,
       } = req.body;
   
-      // ✅ Prepare fields dynamically
+      //  Prepare fields dynamically
       let query = `UPDATE doctors SET `;
       const values = [];
       let index = 1;
@@ -126,14 +145,14 @@ export const updateDoctor = async (req, res) => {
         index++;
       }
   
-      // ✅ Remove trailing comma and space
+      //  Remove trailing comma and space
       query = query.slice(0, -2);
   
-      // ✅ Add WHERE clause
+      //  Add WHERE clause
       query += ` WHERE id = $${index}`;
       values.push(id);
   
-      // ✅ Execute query
+      //  Execute query
       const result = await pool.query(query, values);
   
       if (result.rowCount === 0) {

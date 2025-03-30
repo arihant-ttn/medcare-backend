@@ -1,9 +1,9 @@
-import bcrypt from "bcryptjs";
-import pool from "../config/db.js";
-import { sendEmail } from "../utils/sendEmail.js";
-import { generateResetToken, verifyResetToken } from "../services/tokenService.js";
+import bcrypt from "bcrypt";
+import pool from "../db/index.js";
+import { sendResetEmail } from "./sendEmail.js";
+import { generateResetToken, verifyResetToken } from "./jwtService.js";
 
-// ✅ Forgot Password Controller
+//  Forgot Password Controller
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
@@ -19,8 +19,8 @@ export const forgotPassword = async (req, res) => {
     const token = generateResetToken(user.id);
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
 
-    // ✅ Send Reset Link to Email
-    await sendEmail(
+    //  Send Reset Link to Email
+    await sendResetEmail(
       user.email,
       "Password Reset Request",
       `<p>Click <a href="${resetLink}">here</a> to reset your password. This link expires in 15 minutes.</p>`

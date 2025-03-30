@@ -4,7 +4,7 @@ import api from "./routes/index.js";
 import config from "./config/index.js";
 import session from "express-session";
 import passport from "passport";
-import path from "path";
+
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import cors from 'cors';
@@ -29,7 +29,7 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-
+// app.use(bodyParser.json());  
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

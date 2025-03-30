@@ -1,14 +1,19 @@
 import express from 'express';
-import signUp from '../services/signUp.js';
+import signUpUser from '../services/signUp.js';
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
     try {
-      const response = await signUp(req.body);
+      console.log("controller",req.body);
+      const response = await signUpUser(req.body);
+      console.log(response);
+      if(response.status==409){
+        return res.status(409).json({message:"User Already exists"});
+      }
   
-      if (response && response.success) {
-        return res.status(201).send({ data: response.data });
+      else if (response.status=200) {
+        return res.status(200).json({ message:"User Added successfully" });
       } else {
         throw new Error("Error in adding user");
       }

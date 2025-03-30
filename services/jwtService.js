@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 
-
-// ✅ Generate JWT Token
+const JWT_SECRET = "my_jwt_secret";
+// Generate JWT Token
 export const generateToken = (user) => {
-    const JWT_SECRET = "my_jwt_secret";
+    
   return jwt.sign(
     {
       id: user.id,
@@ -13,3 +13,12 @@ export const generateToken = (user) => {
     { expiresIn: "1d" }
   );
 };
+
+export const generateResetToken = (userId) => {
+    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "15m" });
+  };
+  
+  //  Verify Reset Token
+  export const verifyResetToken = (token) => {
+    return jwt.verify(token, JWT_SECRET);
+  };

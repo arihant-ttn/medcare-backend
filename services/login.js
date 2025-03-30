@@ -12,45 +12,24 @@ const JWT_SECRET = "your_secret_key"; // Use env variable in production
 
 
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: config.GOOGLE_CLIENT_ID,
-      clientSecret: config.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/google/callback"
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        const { id, displayName, emails, photos } = profile;
+export const authenticateGoogle = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
 
-        // Check if user already exists
-        const existingUser = await pool.query(
-          "SELECT * FROM users WHERE google_id = $1",
-          [id]
-        );
-
-        let user;
-        if (existingUser.rows.length === 0) {
-          // Create new user
-          const newUser = await pool.query(
-            `INSERT INTO users (google_id, name, email) 
-             VALUES ($1, $2, $3) RETURNING *`,
-            [id, displayName, emails[0].value]
-          );
-          user = newUser.rows[0];
-        } else {
-          user = existingUser.rows[0];
-        }
-        
-
-        return done(null, user);
-      } catch (error) {
-        console.error("Error in Google Auth:", error);
-        return done(error, null);
-      }
+export const handleGoogleCallback = (req, res, next) => {
+  passport.authenticate("google", { session: false }, (err, user) => {
+    if (err || !user) {
+      console.log(err);
+      return res.redirect(`${API_BASE_URL}/login?error=GoogleLoginFailed`);
     }
-  )
-);
+
+    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: "1hr",
+    });
+
+    res.redirect(`${API_BASE_URL}/login?token=${token}`);
+  })(req, res, next);
+};
 // Local Strategy for authenticating users with email and password
 passport.use(
   new LocalStrategy(
