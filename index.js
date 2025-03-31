@@ -2,14 +2,10 @@ import express from "express";
 import http from "http";
 import api from "./routes/index.js";
 import config from "./config/index.js";
-import session from "express-session";
 import passport from "passport";
-
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import cors from 'cors';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+
+
 
 const app = express();
 const server = http.createServer(app);
@@ -20,16 +16,8 @@ app.use(
     allowedHeaders: ["Content-Type"],
   })
 );
-app.use(
-  session({
-    secret: "mySecretKey", // Replace with a strong secret in .env
-    resave: false,
-    saveUninitialized: false,
-  })
-);
 app.use(passport.initialize());
-app.use(passport.session());
-// app.use(bodyParser.json());  
+ 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

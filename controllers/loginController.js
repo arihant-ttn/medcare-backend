@@ -6,7 +6,7 @@ import { handleGoogleCallback,authenticateGoogle } from "../services/login.js";
 const router = express.Router();
 
 // JWT Secret Key (use env variable in production)
-const JWT_SECRET = "your_secret_key"; // Change for production
+const JWT_SECRET = process.env.JWT_SECRET; // Change for production
 
 router.post("/login", (req, res, next) => {
   console.log("POST /login hit");

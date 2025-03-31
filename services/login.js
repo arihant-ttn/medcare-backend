@@ -8,26 +8,49 @@ import pool from "../db/index.js";
 import config from "../config/index.js";
 const LocalStrategy = pkg.Strategy;
 // JWT Secret Key
-const JWT_SECRET = "your_secret_key"; // Use env variable in production
+// const JWT_SECRET = "your_secret_key"; // Use env variable in production
 
 
+passport.use(new GoogleStrategy(
+  {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: 'http://localhost:3000/google/callback'
+  },
+  async (accessToken, refreshToken, profile, done) =>{
+      try {
+          const email = profile.emails[0].value;  
+
+
+          let user = await pool.query('select * from users where email = $1', [email])
+          if(user.rows.length === 0){
+              // create new user 
+              user = await pool.query('insert into users (name, email) values ($1, $2) returning *', [profile.displayName, profile.emails[0].value ])
+          }
+          return done(null, user.rows[0])
+      } catch (error) {
+          return done(error, null)
+      }
+  }
+))
 
 export const authenticateGoogle = passport.authenticate("google", {
   scope: ["profile", "email"],
 });
 
+
 export const handleGoogleCallback = (req, res, next) => {
   passport.authenticate("google", { session: false }, (err, user) => {
     if (err || !user) {
       console.log(err);
-      return res.redirect(`${API_BASE_URL}/login?error=GoogleLoginFailed`);
+      return res.redirect(`http://localhost:3001/login?error=GoogleLoginFailed`);
     }
 
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
       expiresIn: "1hr",
     });
 
-    res.redirect(`${API_BASE_URL}/login?token=${token}`);
+    res.redirect(`http://localhost:3001/login?token=${token}`);
   })(req, res, next);
 };
 // Local Strategy for authenticating users with email and password
@@ -71,29 +94,7 @@ passport.use(
   )
 );
 
-// JWT Strategy for protecting routes
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: JWT_SECRET,
-};
 
-passport.use(
-  new JwtStrategy(jwtOptions, async (payload, done) => {
-    try {
-      const result = await pool.query("SELECT * FROM users WHERE id = $1", [payload.id]);
-
-      if (result.rows.length === 0) {
-        return done(null, false);
-      }
-
-      const user = result.rows[0];
-      return done(null, user);
-    } catch (err) {
-      console.error("Error in JWT Strategy:", err);
-      return done(err, false);
-    }
-  })
-);
 
 
 

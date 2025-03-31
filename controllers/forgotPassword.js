@@ -5,10 +5,10 @@ import {
 
 const router = express.Router();
 
-// 📩 Forgot Password Route
+//  Forgot Password Route
 router.post("/forgot-password", forgotPassword);
 
-// 🔐 Reset Password Route
+//  Reset Password Route
 // router.post("/reset-password", resetPassword);
 
 export default router;

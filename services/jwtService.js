@@ -10,15 +10,6 @@ export const generateToken = (user) => {
       email: user.email,
     },
     JWT_SECRET,
-    { expiresIn: "1d" }
+    { expiresIn: "1h" }
   );
 };
-
-export const generateResetToken = (userId) => {
-    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "15m" });
-  };
-  
-  //  Verify Reset Token
-  export const verifyResetToken = (token) => {
-    return jwt.verify(token, JWT_SECRET);
-  };

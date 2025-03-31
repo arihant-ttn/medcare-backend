@@ -44,7 +44,7 @@ const fetchDoctors = async (filters, page=1) => {
       }
     }
 
-    // 👩 Filter by Gender
+    //  Filter by Gender
     if (gender && gender !== "showAll") {
       query += ` AND gender = '${gender}'`;
     }
@@ -80,7 +80,7 @@ const fetchDoctors = async (filters, page=1) => {
     };
 
   } catch (err) {
-    console.error("❌ Error fetching doctors:", err);
+    console.error(" Error fetching doctors:", err);
    
   }
 };

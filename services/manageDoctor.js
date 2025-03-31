@@ -18,7 +18,7 @@ export const addDoctor = async (req, res) => {
 
     const query = `
      INSERT INTO doctors (name, specialization, experience, gender, qualification, disease, description, reviews, image)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
 
 
     `;
@@ -74,15 +74,15 @@ export const deleteDoctor = async (req, res) => {
 };
 export const getAllDoctor = async (req, res) => {
   try {
-    // ✅ Fetch all doctors from the database
+    //  Fetch all doctors from the database
     const doctor = await pool.query("SELECT * FROM doctors;");
     
-    // ✅ Return empty array if no doctor found
+    //  Return empty array if no doctor found
     if (doctor.rows.length === 0) {
       return res.status(200).json({ data: [] }); // Return empty array
     }
 
-    // ✅ Send fetched doctor data
+    //  Send fetched doctor data
     res.status(200).json({ success: true, data: doctor.rows });
   } catch (error) {
     console.error("Error fetching doctors:", error);

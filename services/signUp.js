@@ -10,7 +10,7 @@ const signUp =async (body)=>{
           ]);
 
           if (userExists.rows.length > 0) {
-            // ❗️ Return 409 if user exists
+            //  Return 409 if user exists
             return{
                 status:409,
                 success:true,
