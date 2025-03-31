@@ -1,7 +1,6 @@
 import express from "express";
 import {
   forgotPassword,
-  resetPassword,
 } from "../services/forgotPassword.js";
 
 const router = express.Router();
@@ -10,6 +9,6 @@ const router = express.Router();
 router.post("/forgot-password", forgotPassword);
 
 // 🔐 Reset Password Route
-router.post("/reset-password", resetPassword);
+// router.post("/reset-password", resetPassword);
 
 export default router;

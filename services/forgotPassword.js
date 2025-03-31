@@ -1,8 +1,7 @@
 import bcrypt from "bcrypt";
 import pool from "../db/index.js";
-import { sendResetEmail } from "./sendEmail.js";
-import { generateResetToken, verifyResetToken } from "./jwtService.js";
-
+import { sendEmail } from "./sendEmail.js";
+import { generateToken } from "./jwtService.js";
 //  Forgot Password Controller
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -16,15 +15,15 @@ export const forgotPassword = async (req, res) => {
     }
 
     const user = result.rows[0];
-    const token = generateResetToken(user.id);
+    console.log(user);
+    const token = generateToken(user.user_id);
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
 
-    //  Send Reset Link to Email
-    await sendResetEmail(
-      user.email,
-      "Password Reset Request",
-      `<p>Click <a href="${resetLink}">here</a> to reset your password. This link expires in 15 minutes.</p>`
-    );
+    // //  Send Reset Link to Email
+    await sendEmail(user.email, "Password Reset Request", "resetPassword", {
+      name: user.name,
+      resetLink,
+    });
 
     res.status(200).json({ message: "Reset link sent to your email!" });
   } catch (error) {
@@ -33,22 +32,3 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// ✅ Reset Password Controller
-export const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
-  try {
-    const decoded = verifyResetToken(token);
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // ✅ Update User's Password
-    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [
-      hashedPassword,
-      decoded.id,
-    ]);
-
-    res.status(200).json({ message: "Password reset successfully!" });
-  } catch (error) {
-    console.error("Error in reset password:", error);
-    res.status(400).json({ message: "Invalid or expired token!" });
-  }
-};

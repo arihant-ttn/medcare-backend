@@ -13,7 +13,7 @@ const getDoctorData = async (doctorId) => {
 
 //  Update Doctor's Rating
 export const updateDoctorRatingService = async (doctorId, newRating) => {
-  // ✅ Get current rating and reviews count
+  //  Get current rating and reviews count
   const doctorData = await getDoctorData(doctorId);
 
   if (!doctorData) {
@@ -34,9 +34,8 @@ export const updateDoctorRatingService = async (doctorId, newRating) => {
   const updateQuery = `
     UPDATE doctors
     SET rating = $1, reviews_count = $2
-    WHERE id = $3
-    RETURNING rating;
+    WHERE id = $3;
   `;
   const updateRes = await pool.query(updateQuery, [avgRating, newReviewsCount, doctorId]);
-  return updateRes.rows[0].rating;
+
 };

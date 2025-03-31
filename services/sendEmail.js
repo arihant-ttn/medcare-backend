@@ -1,36 +1,39 @@
 import nodemailer from "nodemailer";
+import ejs from "ejs";
+import path from "path";
 
-//  Nodemailer Configuration
+// ✅ Create Transporter for Gmail SMTP
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service: "Gmail",
   auth: {
-    user: "medcare.bootcamp@gmail.com",
-    pass: "Jaimatadi@12",
+    user: process.env.SMTP_EMAIL, // Your Gmail address
+    pass: process.env.SMTP_PASSWORD, // Your 16-character App Password
   },
-  tls: {
-    rejectUnauthorized: false, 
-  },
-  connectionTimeout: 10000, 
 });
 
+// ✅ Send Email Function
+export const sendEmail = async (to, subject, template, data) => {
+  try {
+    //  Define Path to EJS Template
+    const templatePath = path.join(process.cwd(), "templates", `${template}.ejs`);
 
-//  Send Password Reset Email
-export const sendResetEmail = async (email, resetLink) => {
-  const mailOptions = {
-    from: "medcare.bootcamp@gmail.com",
-    to: email,
-    subject: "Password Reset Link",
-    html: `
-      <p>You requested a password reset. Click 
-      <a href="${resetLink}" target="_blank">here</a> 
-      to reset your password.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    `,
-  };
+    //  Render EJS Template with Data
+    console.log("endEmail ", data);
+    const html = await ejs.renderFile(templatePath, data);
 
-  //  Send Email
-  await transporter.sendMail(mailOptions);
+    //  Email Options
+    const mailOptions = {
+      from: process.env.SMTP_EMAIL, // Sender's email
+      to, // Recipient's email
+      subject, // Email subject
+      html, // Rendered HTML content
+    };
+
+    //  Send Email
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent to ${to}: ${info.response}`);
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
+    throw new Error("Failed to send email.");
+  }
 };
-

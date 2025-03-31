@@ -1,5 +1,5 @@
 import pool from "../db/index.js";
-
+import { sendEmail } from "./sendEmail.js";
 export const createAppointment = async (body) => {
   const {
     doctorId,
@@ -143,32 +143,66 @@ export const getAppointmentsByDoctor = async (doctorId) => {
   }
 };
 
-export const updateStatus = async(appointmentId,status)=>{
+export const updateStatus = async(id,status)=>{
   try {
-    //  Fetch all appointments
-    const response = await pool.query(
-      "UPDATE appointments SET status = $1 WHERE id = $2 RETURNING *",
-      [status, appointmentId]);
-    
-    //  Check if appointments exist
-    if (response.rows.length > 0) {
+  
+
+    // Validate status
+    if (!["Approved", "Declined"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status provided." });
+    }
+
+    const response =await pool.query(`SELECT users.email, users.name, appointments.selecteddate, appointments.slot
+FROM appointments
+JOIN users ON appointments.userid = users.user_id
+WHERE appointments.id = $1;
+`,[id])
+    //  Get appointment details
+    const result = await pool.query(
+      `SELECT appointments.*, doctors.name AS doctor_name
+FROM appointments
+JOIN doctors ON appointments.docid = doctors.id
+WHERE appointments.id = $1;
+`
+     , [id]
+    );
+
+    if (result.rows.length === 0) {
       return {
-        success: true,
-        data: response.rows,
-      };
-    } else {
-      return {
-        success: false,
-        message: "Appointment Status updated Successfully",
-      };
+        status:404
+      }
+    }
+
+    const appointment = result.rows[0];
+    const ans = response.rows[0];
+    //  Update appointment status
+    await pool.query("UPDATE appointments SET status = $1 WHERE id = $2", [
+      status,
+      id,
+    ]);
+    console.log(appointment);
+    //  Send Email Based on Status
+    const emailTemplate = status === "Approved" ? "approved" : "declined";
+    const subject = `Appointment ${status}`;
+    const emailData = {
+      patientName: ans.name,
+      doctorName: appointment.doctor_name,
+      appointmentDate: appointment.selecteddate,
+      appointmentTime: appointment.slot,
+    };
+
+    //  Send email
+    console.log(emailData);
+    console.log("response",response);
+    await sendEmail(ans.email, subject, emailTemplate, emailData);
+
+    return{
+      success: true,
+      message: `Appointment status updated to ${status} and email sent successfully.`,
     }
   } catch (error) {
-    console.error("Error updating:", error);
-    return {
-      success: false,
-      message: "Error fetching appointments",
-      error: error.message,
-    };
+    console.error("Error updating status:", error);
+    // res.status(500).json({ error: "Failed to update appointment status." });
   }
 }
 

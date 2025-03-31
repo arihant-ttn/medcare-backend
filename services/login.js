@@ -95,17 +95,6 @@ passport.use(
   })
 );
 
-passport.serializeUser((user, done) => {
-  done(null,user);
-});
 
-passport.deserializeUser(async (email,user, done) => {
-  try {
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    done(null,user);
-  } catch (err) {
-    done(err);
-  }
-});
 
 export default passport;
